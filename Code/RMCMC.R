@@ -1,16 +1,21 @@
-################################################################################
 #################################### CHAIN FUNCTION ############################
-sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", 'hmc'),
-                     name,
-                     warm_up = 100,
-                     main = 1000,
-                     adapters = NULL,
-                     scale = 0.8,
-                     thin = 1,
-                     chains = 2, kappa = 0.6,
-                     iteration_offset=10,
-                     gamma=0.05, tau_star=0.40,
-                     n_step, sample_n_step=NULL, sample_auxiliary, plot = TRUE, save_plot=TRUE) {
+sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
+                        name,
+                        warm_up = 100,
+                        main = 1000,
+                        adapters = NULL,
+                        scale = 0.8,
+                        thin = 1,
+                        chains = 2,
+                        kappa = 0.6,
+                        iteration_offset = 10,
+                        gamma = 0.05,
+                        tau_star = 0.40,
+                        n_step = NULL,
+                        sample_n_step = NULL,
+                        sample_auxiliary = NULL,
+                        plot = TRUE,
+                        save_plot = TRUE) {
 
   method <- match.arg(method)
 
@@ -60,58 +65,99 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", 'hmc'),
   sampler <- switch(
     method,
     bimodal = function(x)
-      bimodal_barker(target = target, init_state = x,
-             warmup_iter = warm_up, main_iter = main,
-             scale = scale, shape = shape, adapters = adapters),
+      bimodal_barker(
+        target = target,
+        init_state = x,
+        warmup_iter = warm_up,
+        main_iter = main,
+        scale = scale0,
+        shape = shape,
+        adapters = adapters
+        ),
+
     barker = function(x)
-      barker(target = target, init_state = x,
-             warmup_iter = warm_up, main_iter = main,
-             scale = scale, shape = shape, adapters = adapters),
+      barker(
+        target = target,
+        init_state = x,
+        warmup_iter = warm_up,
+        main_iter = main,
+        scale = scale0,
+        shape = shape,
+        adapters = adapters
+        ),
+
     amala  = function(x)
-      AMALA(target = target, init_state = x,
-             warmup_iter = warm_up, main_iter = main,
-             adapters = adapters, scale=scale, shape=shape),
+      AMALA(
+        target = target,
+        init_state = x,
+        warmup_iter = warm_up,
+        main_iter = main,
+        adapters = adapters,
+        scale=scale0,
+        shape=shape
+        ),
+
     amh  = function(x)
-      AdaptiveMH(target = target, init_state = x,
-             warmup_iter = warm_up, main_iter = main,
-             scale = scale, shape = shape, adapters = adapters),
+      AdaptiveMH(
+        target = target,
+        init_state = x,
+        warmup_iter = warm_up,
+        main_iter = main,
+        scale = scale0,
+        shape = shape,
+        adapters = adapters
+        ),
+
     hmc = function(x)
-      HMC(target = target, init_state = x,
-          warmup_iter = warm_up, main_iter = main,
-          scale = scale, shape = shape, n_step = n_step, sample_n_step = sample_n_step,
-          sample_auxiliary = sample_auxiliary, adapters=adapters)
+      HMC(
+        target = target,
+        init_state = x,
+        warmup_iter = warm_up,
+        main_iter = main,
+        scale = scale0,
+        shape = shape,
+        n_step = n_step,
+        sample_n_step = sample_n_step,
+        sample_auxiliary = sample_auxiliary,
+        adapters=adapters)
   )
 
   # --- run chains & convert to mcmc ---
   chains_raw <- lapply(starts, function(x) sampler(x)$traces)
 
   # 2) Keep only the first d parameters, seq_len(d) is the equivalent of 0:d
-  chains_mat <- lapply(chains_raw, function(ch) as.matrix(ch)[, seq_len(d), drop = FALSE])
+  chains_mat <- lapply(
+    chains_raw,
+    function(ch) as.matrix(ch)[, seq_len(d), drop = FALSE]
+    )
 
   # 3) Convert to coda objects and build the mcmc.list
   mcl <- mcmc.list(lapply(chains_mat, function(m) mcmc(m, start = 1)))
 
   # 4) Drop warmup
-  mcl <- window(mcl, start = warm_up + 1)
+  mcl <- window(mcl, start = warm_up + 1) # Selects only the rows from mcl from row start (= warm_up + 1) to the bottom
 
 
   # --- basic diag results ---
   diag_basic <- basic_diagnostics(mcl)
   print(diag_basic)
 
-  #   # --- advanced diagnostics (only if truths available) ---
+
+  # --- advanced diagnostics if truths available ---
   diag_extra <- NULL
-  if (!is.null(info$truth_mean) && !is.null(info$truth_var)) {
-    diag_extra <- diagnostics(
-    chains = mcl,
-    ess = diag_basic$ess_bulk,
-    truth_mean     = info$truth_mean,
-    truth_var = info$truth_var
-    )}
+
+  # no need to add another if, already specified in diagnostics
+  diag_extra <- diagnostics(
+    chains      = mcl,
+    ess         = diag_basic$ess_bulk,
+    truth_mean  = info$truth_mean,
+    truth_var   = info$truth_var
+    )
 
   mse_curve  <- diag_extra$curves$mse
   dt_curve   <- diag_extra$curves$dt
   esjd_curve <- diag_extra$curves$esjd
+
 
   # small draw util that skips legend when only one series
   graph <- function(mat, main, ylab) {
