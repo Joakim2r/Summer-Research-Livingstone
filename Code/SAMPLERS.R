@@ -1,6 +1,15 @@
+############################## SAMPLERS #############################
+
 ############################## BIMODAL BARKER FUNCTION #############################
-bimodal_barker <- function(target, init_state, warmup_iter, main_iter, scale,
-                shape, adapters, sigma) {
+bimodal_barker <- function(
+    target,
+    init_state,
+    warmup_iter,
+    main_iter,
+    scale,
+    shape,
+    adapters,
+    sigma) {
 
   prop <- bimodal_barker_proposal(
     sigma = sigma,
