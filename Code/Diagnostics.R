@@ -82,6 +82,7 @@ diagnostics <- function(chains, ess, truth_mean = NULL, truth_var = NULL) {
       run_sum  <- apply(M,  2, cumsum)
       run_sum2 <- apply(M^2, 2, cumsum)
       run_var  <- run_sum2 / n_seq - (run_sum / n_seq)^2
+      run_var <- pmax(run_var, .Machine$double.xmin)
       log_vars <- log(run_var)
       truth_log <- matrix(rep(log_tv, each = n), nrow = n)
       sqrt(rowMeans((log_vars - truth_log)^2))
