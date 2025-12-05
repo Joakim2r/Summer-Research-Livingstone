@@ -51,3 +51,15 @@ posterior_draws <- function(name, refs=pos_names, seed = 1234) {
     truth_var=truth_var
   )
 }
+
+
+has_ref <- vapply(pos_names, function(nm) {
+  p <- posterior(nm, pdb)
+  rpd <- try(reference_posterior_draws(p), silent = TRUE)
+  !inherits(rpd, "try-error") && !is.null(rpd)
+}, logical(1))
+
+#vapply expects a Boolean, thast why no need for TRUE and FALSE
+
+pos_with_ref <- pos_names[has_ref]
+
