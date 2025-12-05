@@ -21,7 +21,6 @@ Sys.setenv(
 ############################## POSTERIOR DATABASE #####################################
 pdb <- pdb_local("/Users/joakimderambures/posteriordb")
 pos_names <- posterior_names(pdb)
-
 ########################## DATA/MODEL FUNC #####################################
 posterior_draws <- function(name, refs=pos_names, seed = 1234) {
   p   <- posterior(name, pdb)
