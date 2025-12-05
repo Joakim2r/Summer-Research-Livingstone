@@ -10,6 +10,7 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
                         kappa = 0.6,
                         iteration_offset = 10,
                         gamma = 0.05,
+                        sigma = 1,
                         tau_star = 0.40,
                         n_step = NULL,
                         sample_n_step = NULL,
@@ -55,8 +56,8 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
                                    target_accept_prob = tau_star),
       variance_shape_adapter(kappa = kappa)
     )
-    adapters <- match.arg(adapters, c("adapter1", "adapter2"))
-    adapters <- if (adapters == "adapter1") adapter1 else adapter2
+    choice <- match.arg(adapters, c("adapter1", "adapter2"))
+    adapters <- if (choice == "adapter1") adapter1 else adapter2
   } else {
     adapters <- NULL
   }
@@ -72,6 +73,7 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
         main_iter = main,
         scale = scale0,
         shape = shape,
+        sigma = sigma,
         adapters = adapters
         ),
 
@@ -135,7 +137,7 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
   mcl <- mcmc.list(lapply(chains_mat, function(m) mcmc(m, start = 1)))
 
   # 4) Drop warmup
-  mcl <- window(mcl, start = warm_up + 1) # Selects only the rows from mcl from row start (= warm_up + 1) to the bottom
+  mcl <- window(mcl, start = warm_up + 1, thin = thin) # Selects only the rows from mcl from row start (= warm_up + 1) to the bottom
 
 
   # --- basic diag results ---
@@ -203,4 +205,23 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
   list(mcl= mcl, diag_basic = diag_basic, diag_extra=diag_extra)
 }
 
+
+x <- sample_mcmc(method = "hmc",
+         name = "wells_data-wells_interaction_c_model" ,
+         warm_up = 100,
+         main = 1000,
+         adapters = NULL,
+         scale = 0.8,
+         thin = 1,
+         chains = 2,
+         kappa = 0.6,
+         iteration_offset = 10,
+         gamma = 0.05,
+         sigma = 1,
+         tau_star = 0.40,
+         n_step = NULL,
+         sample_n_step = NULL,
+         sample_auxiliary = NULL,
+         plot = TRUE,
+         save_plot = TRUE)
 
