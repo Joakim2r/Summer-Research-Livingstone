@@ -189,14 +189,23 @@ HMC <- function(target,
     }
   }
 
-  # -------- proposal --------
-  prop <- hamiltonian_proposal(
-    scale             = scale,
-    shape             = shape,
-    n_step            = step_count,
-    sample_n_step     = step_sampler,
-    sample_auxiliary  = aux_fun
-  )
+  if (is.null(aux_fun)) {                                           # [FIX] Use default momentum if aux_fun is NULL
+    prop <- hamiltonian_proposal(
+      scale         = scale,
+      shape         = shape,
+      n_step        = step_count,
+      sample_n_step = step_sampler
+      # sample_auxiliary omitted: uses default (standard Gaussian momentum)       [FIX]
+    )
+  } else {
+    prop <- hamiltonian_proposal(
+      scale            = scale,
+      shape            = shape,
+      n_step           = step_count,
+      sample_n_step    = step_sampler,
+      sample_auxiliary = aux_fun
+    )
+  }
 
   # -------- run chain --------
   fit <- sample_chain(
