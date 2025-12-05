@@ -9,7 +9,7 @@ bimodal_barker <- function(
     scale,
     shape,
     adapters,
-    sigma) {
+    sigma = 1) {
 
   prop <- bimodal_barker_proposal(
     sigma = sigma,
@@ -67,9 +67,6 @@ AMALA <- function(
     warmup_iter,
     main_iter,
     adapters,  # or a custom list
-    tau_star,
-    kappa,
-    gamma,
     scale,
     shape,
     iteration_offset

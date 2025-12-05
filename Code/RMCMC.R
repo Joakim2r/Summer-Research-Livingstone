@@ -11,7 +11,7 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
                         iteration_offset = 10,
                         gamma = 0.05,
                         sigma = 1,
-                        tau_star = 0.40,
+                        tau_star = 0.44,
                         n_step = NULL,
                         sample_n_step = NULL,
                         sample_auxiliary = NULL,
@@ -95,8 +95,9 @@ sample_mcmc <- function(method = c("bimodal", "barker", "amala", "amh", "hmc"),
         warmup_iter = warm_up,
         main_iter = main,
         adapters = adapters,
-        scale=scale0,
-        shape=shape
+        scale,
+        shape,
+        iteration_offset = 10
         ),
 
     amh  = function(x)
